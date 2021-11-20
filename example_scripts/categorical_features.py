@@ -1,5 +1,3 @@
-import numbers
-
 import pandas as pd
 
 from darian.learn.isolation_forest import IsolationForest
