@@ -164,7 +164,7 @@ class IsolationTree:
                     self.split_value = []
 
                 mask = random_column.apply(
-                    lambda row: _jaccard_similarity(
+                    lambda row: _coverage_of_intersection(
                         extract_n_grams(row, splitter, vectorizer.lowercase, vectorizer.ngram_range),
                         self.split_value) > self.jaccard_similarity_threshold)
                 left_child_node_elements = self.X[mask]
@@ -213,7 +213,7 @@ class IsolationTree:
                     ngram_range = self.string_features_parameters[self.split_attribute]['ngram_range']
 
                 n_grams = extract_n_grams(X[self.split_attribute], splitter, lowercase, ngram_range)
-                if _jaccard_similarity(n_grams, self.split_value) > self.jaccard_similarity_threshold:
+                if _coverage_of_intersection(n_grams, self.split_value) > self.jaccard_similarity_threshold:
                     return self.left_sub_tree.__get_path_of_single_instance(X)
                 else:
                     return self.right_sub_tree.__get_path_of_single_instance(X)
@@ -261,7 +261,13 @@ def _average_path_length(n: int):
         return 2 * harmonic_number(n - 1) - 2 * (n - 1) / n
 
 
-def _jaccard_similarity(set1, set2):
+def _coverage_of_intersection(set1, set2):
+    """
+    Coverage of intersection of two sets is calculated as follows: len(set1 & set2) / len(set2)
+    In other words, what percentage of the intersection of set1 and set2 is to be found in set2.
+    :param set1
+    :param set2
+    """
     set1 = set(set1)
     set2 = set(set2)
     if '' in set1:
@@ -269,8 +275,7 @@ def _jaccard_similarity(set1, set2):
     if '' in set2:
         set2.remove('')
 
-    union_size = len(set2)
-    if union_size == 0:
+    if len(set2) == 0:
         return 0
     intersection_size = len(set1 & set2)
-    return intersection_size / union_size
+    return intersection_size / len(set2)
