@@ -53,8 +53,7 @@ class Experiment(ABC):
                 algorithm_name = model_data.model().__str__()
                 self.__logger.info(f"Performing experiments on {model_data.data_name} using {algorithm_name}. "
                                    f"Downsampling factor: {downsampling_factor:.2f}")
-                indices_to_be_removed = self.__downsample(downsampling_factor, 1)
-                training_data = model_data.data.drop(indices_to_be_removed)
+                training_data = self.__downsample(model_data.data, downsampling_factor, 1)
 
                 for parameters in self.get_parameters():
                     self.__logger.info(f"Parameters: {parameters}")
@@ -118,17 +117,27 @@ class Experiment(ABC):
     def get_n_jobs():
         return 11
 
-    def __downsample(self, downsampling_factor: float, positive_class, random_state: int = 0):
+    def __downsample(self, dataframe, downsampling_factor: float, positive_class, random_state: int = 0):
+        """
+        Given a dataframe, this method reduces the proportion of positive classes in the dataframe to
+        downsampling_factor and returns the new dataframe.
+        :param dataframe
+        :param downsampling_factor
+        :param positive_class
+        :param random_state
+        :return:
+        Dataframe with the proportion of anomalies specified using  downsampling_factor
+        """
+
         if downsampling_factor is None or downsampling_factor < 0:
             return []
 
-        positive_instances = self.get_label_column()[self.get_label_column() == positive_class]
+        positive_instances = dataframe[dataframe[self.get_label_name()] == positive_class]
         number_of_positive_instances_to_be_removed = \
-            int((positive_instances.shape[0] - downsampling_factor * self.get_label_column().shape[0])
-                / (1 - downsampling_factor))
+            int((positive_instances.shape[0] - downsampling_factor * dataframe.shape[0]) / (1 - downsampling_factor))
         instances_to_be_removed = positive_instances.sample(n=number_of_positive_instances_to_be_removed,
                                                             random_state=random_state)
-        return instances_to_be_removed.index
+        return dataframe.drop(instances_to_be_removed.index)
 
     def save_experiment(self, location: str):
         with open(location, "wb") as output:
