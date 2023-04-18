@@ -11,6 +11,8 @@ categorical features without any modification on the original dataset.
 
 The example file in the script's directory shows how to use this algorithm.
 
+P.s.: For more information please refer to my master's thesis in the current project.
+
 # IsolationForest with categorical features
 
 ### Subset of length 1[[2]](*2)
